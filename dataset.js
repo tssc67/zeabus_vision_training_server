@@ -20,7 +20,7 @@ function fileExist(checksum){
     //Count checksum in the set and return both checksum and count as array
     return redis.sismemberAsync('zvts:bags',checksum)
     .then((count)=>{
-      return [checksum,count];
+      return resolve([checksum,count]);
     });
   });
 }
@@ -29,8 +29,8 @@ exports.addBag = function(filename){
   .then(fileExist)
   .then((checksum_count)=>{
     //If checksum is hit
-    if(checksum_count[1]>0)throw new error("File already exist");
-    return redis.saddAsync('zvts:bags',checksum_count[0]);
-    .then(redis.setAsync(`zvts:bags:${checksum_count[0]}`));
+    if(checksum_count[1]>0)throw new Error("File already exist");
+    return redis.saddAsync('zvts:bags',checksum_count[0])
+    .then(redis.setAsync(`zvts:bags:${checksum_count[0]}:filename`,filename));
   });
 }
