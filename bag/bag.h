@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <vector>
 #include <boost/foreach.hpp>
 #include "ros/ros.h"
 #include "ros/time.h"
@@ -30,7 +31,7 @@ namespace vision{
       rosbag::View::iterator curItr;
       rosbag::View::iterator endItr;
     };
-    Bag_Vision(String filename,String topic);
+    Bag_Vision(std::string filename,std::vector<std::string> topic);
     img_iterator begin(); // First frame of bag
     img_iterator end();
     size_t size();

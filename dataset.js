@@ -59,11 +59,15 @@ function getCurrentBag(){
   );
 }
 
+function getBagSize(){
+  //
+}
 
 function increaseBagProgress(bagHash){
   return isAlreadyAdded(bagHash).then((checksum_count)=>{
     if(checksum_count[1] == 0)throw new Error("Bag doesn't exist");
     return redis.incrAsync(`zvts:bags:${bagHash}:progress`)
+    //
   })
 }
 

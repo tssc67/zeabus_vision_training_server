@@ -24,10 +24,11 @@ void ui(){
 int main(int argc, char const *argv[]) {
   std::string cmd;
   std::string cmd_type;
-  Bag_Vision bag(argv[1],argv[2]);
-  cout << (string)"Reading " + argv[1] +  " , on topic " + argv[2] << endl;
+  vector<string> topics;
+  for(int i=1;i<argc;++i)topics.push_back(argv[i]);
+  Bag_Vision bag(argv[1],topics);
   Bag_Vision::img_iterator cur = bag.begin();
-  cout << "Size: " << bag.size() << endl;
+  cout << "OK" << bag.size() << endl;
   int frame = 0;
   thread ui_t(ui);//UI Thread
   ct_msg msg;

@@ -2,10 +2,8 @@
 using namespace vision;
 using namespace cv;
 using namespace std;
-Bag_Vision::Bag_Vision(String filename,String topic){
+Bag_Vision::Bag_Vision(String filename,vector<std::string> topics){
   bag.open(filename,rosbag::bagmode::Read);
-  std::vector<std::string> topics;
-  topics.push_back(topic);
   view = new rosbag::View(bag,rosbag::TopicQuery(topics));
 }
 
