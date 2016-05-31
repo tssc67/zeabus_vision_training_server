@@ -1,26 +1,17 @@
 IDIR =/opt/ros/kinetic/include
-CC=g++
-CFLAGS=-I$(IDIR)
-
-ODIR=obj
 LDIR =/opt/ros/kinetic/lib
+CC=g++
+CFLAGS=-L/opt/ros/kinetic/lib -lrosbag_storage -lrostime -lcpp_common -lroscpp -Wl,-rpath,/opt/ros/kinetic/lib -lroscpp_serialization `pkg-config --libs opencv` -std=c++11 -I$(IDIR)
 
-LIBS=-lrosbag
+OBJ = bag.o
 
-_DEPS = bag.h
-DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
-
-_OBJ = bag.o
-OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
-
-
-$(ODIR)/%.o: %.c $(DEPS)
+%.o: %.cpp
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-bag: $(OBJ)
-	gcc -o $@ $^ $(CFLAGS) $(LIBS)
+bag: bag.o main.cpp
+	$(CC) -o bag main.cpp $(OBJ) $(CFLAGS)
 
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~
+	rm -f **.o
