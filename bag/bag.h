@@ -24,6 +24,7 @@ namespace vision{
     public:
       img_iterator(rosbag::View::iterator begin,rosbag::View::iterator end);
       img_iterator& operator++();
+      img_iterator operator++(int);
       Mat operator*();
     private:
       rosbag::View::iterator curItr;
@@ -32,7 +33,7 @@ namespace vision{
     Bag_Vision(String filename,String topic);
     img_iterator begin(); // First frame of bag
     img_iterator end();
-
+    size_t size();
   private:
     rosbag::Bag bag;
     String topic;

@@ -15,22 +15,50 @@ function getHash(filename){
     fd.pipe(hash);
   })
 }
-function fileExist(checksum){
-  return new Promise((resolve,reject)=>{
-    //Count checksum in the set and return both checksum and count as array
-    return redis.sismemberAsync('zvts:bags',checksum)
-    .then((count)=>{
-      return resolve([checksum,count]);
-    });
+function isAlreadyAdded(checksum){
+  return redis.sismemberAsync('zvts:bags',checksum)
+  .then((count)=>{
+    return [checksum,count];
   });
 }
+function isExist(filename){
+  return new Promise((resolve,reject)=>{
+    stats = fs.lstatSync(filename);
+    if(stats.isDirectory())throw new Error("This is a directory.");
+    resolve(filename);
+  });
+}
+function getUntrainedBag(){
+  return redis.srandmemberAsync("zvts:bags:untrained");
+}
+function setCurrentBag(){
+  return getUntrainedBag().then(
+    (untrainedBag)=>{
+      if(untrainedBag==null)throw new Error("EMPTY");
+
+    }
+  )
+}
+function getCurrentBag(){
+  return redis.getAsync("zvts:currentBag").then(
+    (resp)=>{
+      // if(resp==null)
+    }
+  )
+}
 exports.addBag = function(filename){
-  return getHash(filename)
-  .then(fileExist)
+  return isExist(filename)
+  .then(getHash)
+  .then(isAlreadyAdded)
   .then((checksum_count)=>{
     //If checksum is hit
     if(checksum_count[1]>0)throw new Error("File already exist");
     return redis.saddAsync('zvts:bags',checksum_count[0])
-    .then(redis.setAsync(`zvts:bags:${checksum_count[0]}:filename`,filename));
+    .then(redis.setAsync(`zvts:bags:${checksum_count[0]}:filename`,filename))
+    .then(redis.saddAsync(`zvts:bags:untrained`,{checksum_count[0]}));
   });
+}
+
+exports.getFrame = function(){
+  return getCurrentBag();
 }
