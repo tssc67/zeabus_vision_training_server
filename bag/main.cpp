@@ -7,6 +7,7 @@ using namespace cv;
 using namespace vision;
 struct ct_msg{
   Mat img;
+  bool ended;
 };
 queue<ct_msg> ct_msg_q; // Cross Thread message queue
 std::mutex mtx;
@@ -14,6 +15,7 @@ void ui(){
   int n = 5;
   while(true){
     if(!ct_msg_q.empty()){ // Check queue ,safe
+      if(ct_msg_q.front().ended)return;
       imshow("img",ct_msg_q.front().img);
       ct_msg_q.pop();
     }
@@ -45,11 +47,16 @@ int main(int argc, char const *argv[]) {
     }
     else if(cmd_type=="SHOW"){
       msg.img = *cur;
+      msg.ended = false;
       mtx.lock(); // Perform mutex locking ensuring thread-safe mechanism
       ct_msg_q.push(msg);
       mtx.unlock();
     }
-    else break;
+    else{
+      msg.ended = true;
+      ct_msg_q.push(msg);
+      break;
+    };
   }
   ui_t.join();
   return 0;

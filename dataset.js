@@ -1,6 +1,7 @@
 const fs = require('fs');
 const crypto = require('crypto');
 const path = require('path');
+var bagReader = require('./bagReader');
 
 function getHash(filename){
   return new Promise((resolve,reject)=>{
@@ -59,8 +60,14 @@ function getCurrentBag(){
   );
 }
 
-function getBagSize(){
-  //
+function getBagSize(bagHash){
+  return redis.getAsync(`zvts:bags:${bagHash}:size`).then((size)=>{
+    return parseInt(size);
+  })
+}
+
+function getBagFrame(bagHash,progress){
+  if(progress[0])
 }
 
 function increaseBagProgress(bagHash){
@@ -72,25 +79,47 @@ function increaseBagProgress(bagHash){
 }
 
 function getBagProgress(bagHash){
-  return redis.getAsync(`zvts:bags:${bagHash}`).then((resp)=>{
+  return redis.getAsync(`zvts:bags:${bagHash}:progress`).then((resp)=>{
     if(resp==null)throw new Error("Bag doesn't exist");
     return parseInt(resp);
   })
 }
 
+function isFinished(bagHash){
+  return getBagProgress(bagHash).then((progress)=>{
+    progress = parseInt(progress);
+    return getBagSize(bagHash).then((size)=>{
+      return [(progress == size),progress,size];
+    });
+  });
+}
+
 exports.addBag = function(filename){
+  var checksum_count;
   return isExist(filename)
   .then(getHash)
   .then(isAlreadyAdded)
-  .then((checksum_count)=>{
+  .then((checksum_count_)=>{
     //throw if checksum is hit : File already acknowledge
-    if(checksum_count[1]>0)throw new Error("File already exist");
+    if(checksum_count_[1]>0)throw new Error("File already exist");
+    checksum_count = checksum_count_;
+    return filename;
+  })
+  .then(bagReader.verifyBag)
+  .then((size)=>{
+    //if bag is verified frame count should be return
+    //then add this bag to redis
+
     return redis.saddAsync('zvts:bags',checksum_count[0])
     .then(redis.setAsync(`zvts:bags:${checksum_count[0]}:filename`,filename))
+    .then(redis.setAsync(`zvts:bags:${checksum_count[0]}:size`,size))
+    .then(redis.setAsync(`zvts:bags:${checksum_count[0]}:progress`,0))
     .then(redis.saddAsync(`zvts:bags:untrained`,checksum_count[0]));
   });
 }
 
 exports.getFrame = function(){
-  return getCurrentBag();
+  return getCurrentBag().
+  then(isFinished).
+  then;
 }

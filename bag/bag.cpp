@@ -28,7 +28,6 @@ Bag_Vision::img_iterator& Bag_Vision::img_iterator::operator++() {
 Bag_Vision::img_iterator Bag_Vision::img_iterator::operator++(int) {
   Bag_Vision::img_iterator tmp(*this);
   operator++();
-  operator++();
   return (tmp);
 }
 
