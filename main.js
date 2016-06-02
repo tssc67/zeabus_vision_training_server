@@ -1,7 +1,8 @@
+const fs = require('fs');
+const url = require('url');
 const express = require('express');
 const bodyParser = require('body-parser');
 const config = require('config');
-const url = require('url');
 const parseDataUri = require('parse-data-uri')
 GLOBAL.redis = require('./redisClient')
 GLOBAL.cfg = config;
@@ -31,8 +32,19 @@ app.get('/img.jpg',(req,res,next)=>{
 });
 
 app.post('/submit',(req,res,next)=>{
-  
+  var imgData;
+  try{
+    imgData = parseDataUri(req.body.img);
+  }catch(e){
+    return res.status(500).end("ERROR");
+  }
+  fs.writeFile(`${cfg.get('dataset.labelDirectory')}/${req.body.id}.png`,imgData.data,(err)=>{
+    if(err)return res.status(500).end("ERROR");
+    dataset.submit(req.body.id).then(()=>{
+      res.end("OK");
+    })
+  })
 });
 
-app.use(express.static('./public'));
+app.use(express.static(cfg.get('web.public')));
 // require('./dataset.test.js');

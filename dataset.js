@@ -49,7 +49,7 @@ function getUntrainedBag(){
 }
 
 function getUntrainedFrame(){
-  return redis.srandmemberAsync("zvts:frames:frees");
+  return redis.srandmemberAsync("zvts:frames:untrained");
 }
 
 function setCurrentBag(bagHash){
@@ -87,6 +87,7 @@ function registerFrame(fileName){
     'EX',
     cfg.get('dataset.expiredTime')
   )
+  .then(redis.sremAsync('zvts:frames:untrained',fileName))
   .then(()=>{return fileName});
 }
 
@@ -180,10 +181,14 @@ exports.getNewFrameId = function(){
   // HACK: promise hacking don't do this
   var currentBag;
   var progress;
-  return getUntrainedFrame().then((frameFileName)=>{
-    return frameFileName == null
+  return getUntrainedFrame().then((frameId)=>{
+    return frameId == null
       ?getNewFrame()
-      :frameFileName;
+      :frameId;
   }).then(registerFrame);
   //need revamp
+}
+
+exports.submit = function(frameId){
+  return redis.sremAsync('zvts:frames:untrained',frameId);
 }

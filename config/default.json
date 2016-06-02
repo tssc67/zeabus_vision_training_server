@@ -1,9 +1,11 @@
 {
   "web":{
-    "port":8080
+    "port":8080,
+    "public":"/home/chiro/w/zeabus_vision_training_server/public/"
   },
   "dataset":{
     "tmpDirectory":"/home/chiro/data",
-    "expiredTime":5
+    "labelDirectory":"/home/chiro/data/label",
+    "expiredTime":100
   }
 }
