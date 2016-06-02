@@ -37,5 +37,9 @@ exports.getBagFrame = function(fileName,nthFrame){
     cacheProc.stdin.write("NEXT\n");
     curFrame++;
   }
-  cacheProc.stdin.write("SHOW\n");
+  return new Promise((resolve,reject)=>{
+    var saveFileName = (`${cfg.get('dataset.tmpDirectory')}/${uuid.v4()}.png`);
+    cacheProc.stdin.write(`SAVE ${saveFileName}\n`);
+    resolve(saveFileName);
+  })
 };

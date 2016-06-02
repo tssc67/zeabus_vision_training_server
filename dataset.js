@@ -71,11 +71,9 @@ function getBagSize(bagHash){
 }
 
 function getBagFrame(bagHash,progress){
-  if(!progress[0]){
-    return getFileName(bagHash).then((bagFileName)=>{
-      return bagReader.getBagFrame(bagFileName,progress[1]);
-    });
-  }
+  return getFileName(bagHash).then((bagFileName)=>{
+    return bagReader.getBagFrame(bagFileName,progress[1]);
+  });
 }
 
 function increaseBagProgress(bagHash){
@@ -131,8 +129,18 @@ exports.getFrame = function(){
   return getCurrentBag().then((bagHash)=>{
     currentBag = bagHash;
     return isFinished(bagHash)
-  }).
-  .then((bagHash,progress)
-    bagReader.getBagFrame()
-  );
+  })
+  .then((progress)=>{
+    if(!progress[0]){//if not finished
+      return currentBag;
+    }
+    else{
+      return redis.sreaAsync(`zvts:bags:untrained`,currentBag);
+    }
+  }).then(()=>{
+      getFileName(currentBag).then((bagFileName)=>{
+        return bagReader.getBagFrame(bagFileName,progress[1]);
+      });
+    }
+  )
 }
