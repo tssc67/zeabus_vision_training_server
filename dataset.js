@@ -48,6 +48,10 @@ function getUntrainedBag(){
   );
 }
 
+function getUntrainedFrame(){
+  return redis.srandmemberAsync("zvts:frames:frees");
+}
+
 function setCurrentBag(bagHash){
   return redis.setAsync("zvts:currentBag",bagHash).then(()=>{
     return bagHash;
@@ -76,6 +80,16 @@ function getBagFrame(bagHash,progress){
   });
 }
 
+function registerFrame(fileName){
+  return redis.setAsync(
+    `zvts:frames:locker:${fileName}`,
+    1,
+    'EX',
+    cfg.get('dataset.expiredTime')
+  )
+  .then(()=>{return fileName});
+}
+
 function increaseBagProgress(bagHash){
   return isAlreadyAdded(bagHash).then((checksum_count)=>{
     if(checksum_count[1] == 0)throw new Error("Bag doesn't exist");
@@ -100,35 +114,11 @@ function isFinished(bagHash){
   });
 }
 
-
-exports.addBag = function(filename){
-  var checksum_count;
-  return isExist(filename)
-  .then(getHash)
-  .then(isAlreadyAdded)
-  .then((checksum_count_)=>{
-    //throw if checksum is hit : File already acknowledge
-    if(checksum_count_[1]>0)throw new Error("File already exist");
-    checksum_count = checksum_count_;
-    return filename;
-  })
-  .then(bagReader.verifyBag)
-  .then((size)=>{
-    //if bag is verified frame count should be return
-    //then add this bag to redis
-
-    return redis.saddAsync('zvts:bags',checksum_count[0])
-    .then(redis.setAsync(`zvts:bags:${checksum_count[0]}:filename`,filename))
-    .then(redis.setAsync(`zvts:bags:${checksum_count[0]}:size`,size))
-    .then(redis.setAsync(`zvts:bags:${checksum_count[0]}:progress`,0))
-    .then(redis.saddAsync(`zvts:bags:untrained`,checksum_count[0]));
-  });
-}
-
-exports.getFrame = function(){
-  // HACK: promise hacking don't do this
+function getNewFrame(){
+  // HACK: HVCK ALERT
   var currentBag;
   var progress;
+  // HACK: MUCH HAPPEN, HVCK END
   return getCurrentBag()
   .then((bagHash)=>{
     currentBag = bagHash;
@@ -155,6 +145,45 @@ exports.getFrame = function(){
   .then((bagFileName)=>{
     return bagReader.getBagFrame(currentBag,bagFileName,progress[1]);
   });
-  // HACK: MUCH HAPPEN
+}
+
+redis.exsub.on('pmessage',(p,c,key)=>{
+  var fileName = key.split(":")[3];
+  redis.saddAsync("zvts:frames:untrained",fileName);
+});
+
+exports.addBag = function(filename){
+  var checksum_count;
+  return isExist(filename)
+  .then(getHash)
+  .then(isAlreadyAdded)
+  .then((checksum_count_)=>{
+    //throw if checksum is hit : File already acknowledge
+    if(checksum_count_[1]>0)throw new Error("File already exist");
+    checksum_count = checksum_count_;
+    return filename;
+  })
+  .then(bagReader.verifyBag)
+  .then((size)=>{
+    //if bag is verified frame count should be return
+    //then add this bag to redis
+
+    return redis.saddAsync('zvts:bags',checksum_count[0])
+    .then(redis.setAsync(`zvts:bags:${checksum_count[0]}:filename`,filename))
+    .then(redis.setAsync(`zvts:bags:${checksum_count[0]}:size`,size))
+    .then(redis.setAsync(`zvts:bags:${checksum_count[0]}:progress`,0))
+    .then(redis.saddAsync(`zvts:bags:untrained`,checksum_count[0]));
+  });
+}
+
+exports.getNewFrameId = function(){
+  // HACK: promise hacking don't do this
+  var currentBag;
+  var progress;
+  return getUntrainedFrame().then((frameFileName)=>{
+    return frameFileName == null
+      ?getNewFrame()
+      :frameFileName;
+  }).then(registerFrame);
   //need revamp
 }

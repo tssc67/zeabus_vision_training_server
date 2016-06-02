@@ -44,6 +44,7 @@ int main(int argc, char const *argv[]) {
     }
     else if(cmd_type=="SAVE"){
       imwrite(cmd.substr(5,cmd.size()-5),*cur);
+      cout << "OK";
     }
     else if(cmd_type=="SHOW"){
       msg.img = *cur;

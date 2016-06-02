@@ -3,6 +3,7 @@
     "port":8080
   },
   "dataset":{
-    "tmpDirectory":"/home/chiro/data"
+    "tmpDirectory":"/home/chiro/data",
+    "expiredTime":5
   }
 }
