@@ -6,3 +6,5 @@ var dataset = require('./dataset');
 var app = express();
 
 app.listen(cfg.get('web.port'));
+
+require('./dataset.test.js');

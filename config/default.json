@@ -1,5 +1,8 @@
 {
   "web":{
     "port":8080
+  },
+  "dataset":{
+    "tmpDirectory":"/home/chiro/data"
   }
 }

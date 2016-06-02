@@ -1,7 +1,13 @@
 const execFile = require('child_process').execFile;
 const spawn = require('child_process').spawn;
+const uuid = require('uuid');
+var cacheFile;
+var cacheProc;
+var curFrame=0;
 function spawnBagReader(bagFileName){
-  return spawn("./bag/bag",[bagFileName,"/leftcam/image_raw/compressed/","/rightcam/image_raw/compressed/"]);
+  curFrame=0;
+  cacheFile = bagFileName;
+  return cacheProc=spawn("./bag/bag",[bagFileName,"/leftcam/image_raw/compressed/","/rightcam/image_raw/compressed/"]);
 }
 exports.verifyBag = function(bagFileName){
   return new Promise((resolve,reject)=>{
@@ -23,4 +29,13 @@ exports.verifyBag = function(bagFileName){
   });
 }
 
-exports.spawnBagReader = spawnBagReader;
+exports.getBagFrame = function(fileName,nthFrame){
+  if(fileName != cacheFile || curFrame > nthFrame){
+    spawnBagReader(fileName);
+  }
+  while(curFrame!=nthFrame){
+    cacheProc.stdin.write("NEXT\n");
+    curFrame++;
+  }
+  cacheProc.stdin.write("SHOW\n");
+};
