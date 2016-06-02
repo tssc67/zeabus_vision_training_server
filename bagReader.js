@@ -28,8 +28,7 @@ exports.verifyBag = function(bagFileName){
     proc.on("error",inval);
   });
 }
-
-exports.getBagFrame = function(fileName,nthFrame){
+exports.getBagFrame = function(fileId,fileName,nthFrame){
   if(fileName != cacheFile || curFrame > nthFrame){
     spawnBagReader(fileName);
   }
@@ -38,8 +37,9 @@ exports.getBagFrame = function(fileName,nthFrame){
     curFrame++;
   }
   return new Promise((resolve,reject)=>{
-    var saveFileName = (`${cfg.get('dataset.tmpDirectory')}/${uuid.v4()}.png`);
+    var saveFileName = (`${cfg.get('dataset.tmpDirectory')}/${fileId}.${nthFrame}.png`);
     cacheProc.stdin.write(`SAVE ${saveFileName}\n`);
+    cacheProc.stdin.write(`SHOW\n`);
     resolve(saveFileName);
   })
 };

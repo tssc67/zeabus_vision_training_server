@@ -100,6 +100,7 @@ function isFinished(bagHash){
   });
 }
 
+
 exports.addBag = function(filename){
   var checksum_count;
   return isExist(filename)
@@ -125,22 +126,35 @@ exports.addBag = function(filename){
 }
 
 exports.getFrame = function(){
+  // HACK: promise hacking don't do this
   var currentBag;
-  return getCurrentBag().then((bagHash)=>{
+  var progress;
+  return getCurrentBag()
+  .then((bagHash)=>{
     currentBag = bagHash;
     return isFinished(bagHash)
   })
-  .then((progress)=>{
-    if(!progress[0]){//if not finished
+  .then((_progress)=>{
+    if(!_progress[0]){//if not finished
+      progress = _progress;
       return currentBag;
     }
     else{
-      return redis.sreaAsync(`zvts:bags:untrained`,currentBag);
+      progress = 0;
+      return redis.sremAsync(`zvts:bags:untrained`,currentBag)
+      .then(redis.delAsync("zvts:currentBag")).then(getCurrentBag);
     }
-  }).then(()=>{
-      getFileName(currentBag).then((bagFileName)=>{
-        return bagReader.getBagFrame(bagFileName,progress[1]);
-      });
-    }
-  )
+  })
+  .then((bagHash)=>{
+    currentBag = bagHash;
+    return increaseBagProgress(bagHash)
+    .then(()=>{
+      return getFileName(bagHash);
+    });
+  })
+  .then((bagFileName)=>{
+    return bagReader.getBagFrame(currentBag,bagFileName,progress[1]);
+  });
+  // HACK: MUCH HAPPEN
+  //need revamp
 }
