@@ -190,5 +190,6 @@ exports.getNewFrameId = function(){
 }
 
 exports.submit = function(frameId){
-  return redis.sremAsync('zvts:frames:untrained',frameId);
+  return redis.sremAsync('zvts:frames:untrained',frameId)
+  .then(redis.delAsync(`zvts:frames:locker:${frameId}`));
 }
