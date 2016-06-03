@@ -1,0 +1,16 @@
+IDIR =/opt/ros/kinetic/include
+LDIR =/opt/ros/kinetic/lib
+CC=g++
+CFLAGS=-L/opt/ros/kinetic/lib -lpthread -lrosbag_storage -lrostime -lcpp_common -lroscpp -Wl,-rpath,/opt/ros/kinetic/lib -lroscpp_serialization `pkg-config --libs opencv` -std=c++11 -I$(IDIR)
+
+
+%.o: %.cpp
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+viewer: viewer.cpp
+	$(CC) -o viewer viewer.cpp $(OBJ) $(CFLAGS)
+
+.PHONY: clean
+
+clean:
+	rm -f **.o

@@ -150,7 +150,6 @@ function getNewFrame(){
 
 redis.exsub.on('pmessage',(p,c,key)=>{
   var fileName = key.split(":")[3];
-  console.log(key);
   redis.saddAsync("zvts:frames:untrained",fileName);
 });
 
