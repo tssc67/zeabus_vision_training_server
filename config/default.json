@@ -1,11 +1,15 @@
 {
   "web":{
     "port":8080,
-    "public":"/home/chiro/w/zeabus_vision_training_server/public/"
+    "public":"/home/chiro/w/zeabus_vision_training_server/public/",
+    "password":"zeabuscolorful"
   },
   "dataset":{
     "tmpDirectory":"/home/chiro/data",
     "labelDirectory":"/home/chiro/data/label",
     "expiredTime":100
+  },
+  "session":{
+    "secret": "eueueieieaeaeoeo"
   }
 }

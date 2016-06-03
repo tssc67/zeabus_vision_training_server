@@ -11,8 +11,14 @@ var app = express();
 
 app.listen(cfg.get('web.port'));
 
+app.set('views', __dirname + '/views');
+app.engine('html', require('ejs').renderFile);
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(require('./session'));
+app.use(require('./login'));
+
 
 app.get('/getframeid',(req,res,next)=>{
   dataset.getNewFrameId().then((frameid)=>{
