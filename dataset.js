@@ -94,7 +94,7 @@ function registerFrame(fileName){
 function increaseBagProgress(bagHash){
   return isAlreadyAdded(bagHash).then((checksum_count)=>{
     if(checksum_count[1] == 0)throw new Error("Bag doesn't exist");
-    return redis.incrAsync(`zvts:bags:${bagHash}:progress`)
+    return redis.incrbyAsync(`zvts:bags:${bagHash}:progress`,cfg.get('dataset.step'));
     //
   })
 }
@@ -110,7 +110,7 @@ function isFinished(bagHash){
   return getBagProgress(bagHash).then((progress)=>{
     progress = parseInt(progress);
     return getBagSize(bagHash).then((size)=>{
-      return [(progress == size),progress,size];
+      return [(progress >= size),progress,size];
     });
   });
 }
@@ -150,6 +150,7 @@ function getNewFrame(){
 
 redis.exsub.on('pmessage',(p,c,key)=>{
   var fileName = key.split(":")[3];
+  console.log(key);
   redis.saddAsync("zvts:frames:untrained",fileName);
 });
 

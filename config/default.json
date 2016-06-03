@@ -7,7 +7,8 @@
   "dataset":{
     "tmpDirectory":"/home/chiro/data",
     "labelDirectory":"/home/chiro/data/label",
-    "expiredTime":100
+    "expiredTime":600,
+    "step":100
   },
   "session":{
     "secret": "eueueieieaeaeoeo"
